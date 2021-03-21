@@ -14,7 +14,10 @@ public class VRObject : MonoBehaviour
 
     public void OnPointerEnter() {
         onPointerEnter?.Invoke();
-        loadingCoroutine = StartCoroutine(Loading());
+
+        if (onPointerLoad != null) {
+            loadingCoroutine = StartCoroutine(Loading());
+        }
     }
 
     public void OnPointerExit() {
@@ -22,6 +25,7 @@ public class VRObject : MonoBehaviour
 
         if (loadingCoroutine != null) {
             StopCoroutine(loadingCoroutine);
+            LoadingReticle.instance.resetLoad();
         }
     }
 
@@ -30,8 +34,17 @@ public class VRObject : MonoBehaviour
     }
 
     IEnumerator Loading() {
-        yield return new WaitForSeconds(LoadTime);
+        float time = Time.deltaTime;
+        LoadingReticle.instance.SetMaxLoad(LoadTime);
+
+        while (time < LoadTime) {
+            LoadingReticle.instance.SetLoad(time);
+            yield return null;
+            time += Time.deltaTime;
+        }
+
         onPointerLoad?.Invoke();
         loadingCoroutine = null;
+        LoadingReticle.instance.resetLoad();
     }
 }
